@@ -1,0 +1,15 @@
+[package]
+name = "preflight-sim"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+alloy-consensus.workspace = true
+alloy-provider.workspace = true
+anyhow.workspace = true
+preflight-types = { path = "../preflight-types" }
+revm.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true

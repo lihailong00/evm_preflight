@@ -1,0 +1,10 @@
+[package]
+name = "preflight-risk"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+alloy-primitives.workspace = true
+preflight-types = { path = "../preflight-types" }
+serde_json.workspace = true

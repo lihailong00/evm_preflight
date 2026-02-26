@@ -1,0 +1,40 @@
+[workspace]
+members = [
+    "crates/preflight-types",
+    "crates/preflight-sim",
+    "crates/preflight-risk",
+    "crates/preflight-api",
+    "crates/preflight-cli",
+]
+resolver = "3"
+
+[workspace.package]
+edition = "2024"
+license = "MIT"
+version = "0.1.0"
+
+[workspace.dependencies]
+anyhow = "1.0.100"
+axum = "0.8.8"
+clap = { version = "4.5.53", features = ["derive"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
+thiserror = "2.0.17"
+tokio = { version = "1.48.0", features = ["macros", "rt-multi-thread", "signal"] }
+tower-http = { version = "0.6.8", features = ["trace"] }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.20", features = ["env-filter", "fmt"] }
+
+alloy-consensus = "1.6.1"
+alloy-primitives = { version = "1.5.4", features = ["serde"] }
+alloy-provider = "1.6.1"
+revm = { version = "34.0.0", default-features = false, features = [
+    "std",
+    "alloydb",
+    "portable",
+    "secp256k1",
+    "optional_balance_check",
+    "optional_block_gas_limit",
+    "optional_no_base_fee",
+    "optional_fee_charge",
+] }
