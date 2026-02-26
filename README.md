@@ -1,65 +1,65 @@
 # evm-preflight
 
-Self-hosted EVM transaction simulator + risk engine in Rust.
+使用 Rust 构建的自托管 EVM 交易仿真与风控引擎。
 
-## What It Does
+## 项目功能
 
-- Simulates a single EVM transaction against a chosen RPC endpoint and block state.
-- Returns simulation output:
+- 在指定 RPC 节点与区块状态下，仿真单笔 EVM 交易。
+- 返回仿真结果：
   - `success`
   - `gas_used`
-  - `revert_reason` (tries to decode standard `Error(string)`)
-  - raw `logs`
+  - `revert_reason`（尽量解析标准 `Error(string)`）
+  - 原始 `logs`
   - `execution_time_ms`
-- Runs a pluggable risk engine (MVP includes 2 rules):
+- 执行可扩展风控规则（MVP 内置 2 条）：
   - `RULE_REVERT_WILL_FAIL` (HIGH)
   - `RULE_ERC20_UNLIMITED_APPROVAL` (MEDIUM)
 
-## Disclaimer
+## 免责声明
 
-This tool performs pre-execution against a specific chain state (selected block / latest snapshot).
-It does **not** model mempool competition, frontrunning, sandwich attacks, bundle ordering, or state changes after the chosen block.
-Simulation results are best-effort previews, not execution guarantees.
+本工具在指定链上状态（指定区块 / 最新快照）下进行预执行仿真。
+它**不会**模拟 mempool 竞争、抢跑、夹子攻击、打包顺序或所选区块之后的状态变化。
+仿真结果仅用于预演参考，不保证真实链上执行结果。
 
-## MVP Scope
+## MVP 范围
 
-Implemented:
-- HTTP API (`axum`)
+已实现：
+- HTTP API（`axum`）
   - `GET /healthz`
   - `POST /v1/simulate`
 - CLI
   - `evm-preflight simulate --rpc ... --block ... --from ... --to ... --data ... --value ...`
-- Core simulation stack:
+- 核心仿真栈：
   - `alloy-provider` + `revm::database::AlloyDB` + `WrapDatabaseAsync` + `CacheDB`
-- Risk engine with the two required rules
-- Unit tests + optional live integration test
+- 两条必需风控规则
+- 单元测试 + 可选在线集成测试
 
-Not implemented (non-goals):
-- mempool simulation
-- sandwich/path/MEV route search
-- `debug_traceCall` style deep tracing
-- token USD pricing
+未实现（非目标）：
+- mempool 仿真
+- 夹子/路径/MEV 路由搜索
+- `debug_traceCall` 风格的深度 tracing
+- Token 美元定价
 
-## Quick Start
+## 快速开始
 
-Requirements:
-- Rust stable (`cargo`, `rustc`)
+环境要求：
+- Rust 稳定版（`cargo`, `rustc`）
 
-Install deps and build:
+安装依赖并构建：
 
 ```bash
 cargo build
 ```
 
-Run API server:
+启动 API 服务：
 
 ```bash
 cargo run -p preflight-api
 ```
 
-Default bind: `0.0.0.0:3000`
+默认监听：`0.0.0.0:3000`
 
-Run CLI:
+运行 CLI：
 
 ```bash
 cargo run -p preflight-cli -- simulate \
@@ -75,7 +75,7 @@ cargo run -p preflight-cli -- simulate \
 
 ### `GET /healthz`
 
-Response:
+返回：
 
 ```text
 ok
@@ -83,7 +83,7 @@ ok
 
 ### `POST /v1/simulate`
 
-Request:
+请求：
 
 ```json
 {
@@ -101,7 +101,7 @@ Request:
 }
 ```
 
-Example `curl`:
+`curl` 示例：
 
 ```bash
 curl -sS http://127.0.0.1:3000/v1/simulate \
@@ -119,7 +119,7 @@ curl -sS http://127.0.0.1:3000/v1/simulate \
   }'
 ```
 
-Success response shape:
+成功响应结构：
 
 ```json
 {
@@ -134,7 +134,7 @@ Success response shape:
 }
 ```
 
-Error response shape:
+错误响应结构：
 
 ```json
 {
@@ -145,52 +145,52 @@ Error response shape:
 }
 ```
 
-## Project Structure
+## 项目结构
 
 ```text
 crates/
-  preflight-types/   # serde DTOs and shared schema
-  preflight-sim/     # revm + alloy simulation core
-  preflight-risk/    # risk rules and engine
-  preflight-api/     # axum HTTP service
-  preflight-cli/     # command line interface
+  preflight-types/   # serde 数据结构与共享 schema
+  preflight-sim/     # revm + alloy 仿真核心
+  preflight-risk/    # 风控规则与引擎
+  preflight-api/     # axum HTTP 服务
+  preflight-cli/     # 命令行工具
 ```
 
-## Developer Commands
+## 开发命令
 
-Format:
+格式检查：
 
 ```bash
 cargo fmt --check
 ```
 
-Lint:
+静态检查：
 
 ```bash
 cargo clippy --workspace --all-targets -- -D warnings
 ```
 
-Test:
+测试：
 
 ```bash
 cargo test --workspace
 ```
 
-Optional live RPC integration test:
+可选在线 RPC 集成测试：
 
 ```bash
 ETH_RPC_URL=https://your-rpc.example cargo test -p preflight-sim --test live_rpc -- --nocapture
 ```
 
-If `ETH_RPC_URL` is not set, the live test is skipped automatically.
+如果未设置 `ETH_RPC_URL`，在线测试会自动跳过。
 
 ## FAQ
 
-### Why is `disable_balance_check` enabled by default?
+### 为什么默认开启 `disable_balance_check`？
 
-The MVP prioritizes deterministic preflight execution. Real accounts used for simulation may not hold enough native token to satisfy transaction fee checks in `revm`, especially for dry-run callers.  
-To reduce false negatives:
-- balance check is disabled by default, and
-- the sender is locally topped up in the simulation cache (state is not written on-chain).
+MVP 优先保证预检仿真可稳定执行。用于仿真的真实账户可能没有足够原生代币通过 `revm` 的费用校验，尤其是仅预演调用（dry-run）场景。  
+为降低误报失败：
+- 默认关闭余额校验；
+- 在本地仿真缓存中临时补足 sender 余额（不会写入链上状态）。
 
-This behavior only affects in-memory simulation state.
+该行为仅影响内存中的仿真状态。
